@@ -43,7 +43,7 @@ class Aufwachlicht extends IPSModule
         if (!IPS_VariableProfileExists($profile)) {
             IPS_CreateVariableProfile($profile, 0);
         }
-        IPS_SetVariableProfileIcon($profile, 'Light');
+        IPS_SetVariableProfileIcon($profile, 'Bulb');
         IPS_SetVariableProfileAssociation($profile, 0, 'Aus', '', -1);
         IPS_SetVariableProfileAssociation($profile, 1, 'An', '', 0x00FF00);
         //Register variable

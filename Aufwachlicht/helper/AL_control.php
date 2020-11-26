@@ -52,23 +52,15 @@ trait AL_control
                 if ($lightState) {
                     return;
                 }
-                $duration = $this->ReadPropertyInteger('WakeUpDuration');
+                @PHUE_DimSet($id, 1);
                 $color = $this->ReadPropertyInteger('WakeUpColor');
                 $hex = dechex($color);
                 $hexColor = '#' . strtoupper($hex);
-                $brightness = $this->ReadPropertyInteger('WakeUpBrightness');
-                //Switch on immediately
-                if ($duration == 0) {
-                    @PHUE_ColorSet($id, $hexColor);
-                    @PHUE_DimSet($id, $brightness);
-                } else {
-                    @PHUE_DimSet($id, 1);
-                    @PHUE_ColorSet($id, $hexColor);
-                    $this->WriteAttributeInteger('CyclingBrightness', 1);
-                    $milliseconds = intval(floor(($duration * 60 * 1000) / ($brightness - 1)));
-                    $this->WriteAttributeInteger('CyclingInterval', $milliseconds);
-                    $this->SetTimerInterval('WakeUpMode', $milliseconds);
-                }
+                @PHUE_ColorSet($id, $hexColor);
+                $this->WriteAttributeInteger('CyclingBrightness', 1);
+                $milliseconds = intval(floor(($this->ReadPropertyInteger('WakeUpDuration') * 60 * 1000) / ($this->ReadPropertyInteger('WakeUpBrightness') - 1)));
+                $this->WriteAttributeInteger('CyclingInterval', $milliseconds);
+                $this->SetTimerInterval('WakeUpMode', $milliseconds);
             }
         }
     }
@@ -83,14 +75,14 @@ trait AL_control
         }
         $id = $this->ReadPropertyInteger('Light');
         if ($id != 0 && @IPS_ObjectExists($id)) {
-            $cyclingBrightness = $this->ReadAttributeInteger('CyclingBrightness');
-            //Abort, if light was manually switched off
+            //Abort, if light was already switched off, user don't want to wait till cycling end
             if (@!PHUE_GetState($id)) {
                 $this->SetValue('WakeUpLight', false);
                 $this->ResetParameters();
                 return;
             }
             //Abort, if or actual brightness is higher then the cycling brightness
+            $cyclingBrightness = $this->ReadAttributeInteger('CyclingBrightness');
             if ($this->GetLightBrightness() > $cyclingBrightness) {
                 $this->SetValue('WakeUpLight', true);
                 $this->ResetParameters();
