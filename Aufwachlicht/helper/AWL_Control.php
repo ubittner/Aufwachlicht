@@ -26,7 +26,6 @@ trait AWL_Control
      * @return bool
      * false =  an error occurred,
      * true =   successful
-     *
      * @throws Exception
      */
     public function ToggleWakeUpLight(bool $State, int $Mode = 0): bool
@@ -112,9 +111,9 @@ trait AWL_Control
 
             //Set next cycle
             $this->SetTimerInterval('IncreaseBrightness', $this->CalculateNextCycle() * 1000);
-
-            return true;
         }
+
+        return true;
     }
 
     /**
