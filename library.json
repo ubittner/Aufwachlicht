@@ -1,12 +1,12 @@
 {
-  "id": "{A56B7F24-115F-5E3B-3780-375194E9DE2C}",
-  "author": "Ulrich Bittner",
-  "name": "Aufwachlicht",
-  "url": "https://github.com/ubittner/Aufwachlicht",
-  "compatibility": {
-    "version": "5.5"
-  },
-  "version": "1.00",
-  "build": 1,
-  "date": 1606388578
+    "id": "{A56B7F24-115F-5E3B-3780-375194E9DE2C}",
+    "author": "Ulrich Bittner",
+    "name": "Aufwachlicht",
+    "url": "https://github.com/ubittner/Aufwachlicht",
+    "compatibility": {
+        "version": "6.3"
+    },
+    "version": "1.00",
+    "build": 2,
+    "date": 1684487207
 }

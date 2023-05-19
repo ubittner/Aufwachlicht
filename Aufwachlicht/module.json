@@ -1,14 +1,14 @@
 {
-  "id": "{080A9C0F-F881-F85E-5DCC-BCD525EEF410}",
-  "name": "Aufwachlicht",
-  "type": 3,
-  "vendor": "Philips",
-  "aliases": [
-    "Aufwachlicht"
-  ],
-  "url": "https://github.com/ubittner/Aufwachlicht",
-  "parentRequirements": [],
-  "childRequirements": [],
-  "implemented": [],
-  "prefix": "AL"
+    "id": "{080A9C0F-F881-F85E-5DCC-BCD525EEF410}",
+    "name": "Aufwachlicht",
+    "type": 3,
+    "vendor": "UB",
+    "aliases": [
+        "Aufwachlicht"
+    ],
+    "url": "https://github.com/ubittner/Einschlaflicht/tree/main/Aufwachlicht",
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "AWL"
 }

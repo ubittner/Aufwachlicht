@@ -6,12 +6,12 @@ include_once __DIR__ . '/stubs/Validator.php';
 
 class AufwachlichtValidationTest extends TestCaseSymconValidation
 {
-    public function testValidateAufwachlicht(): void
+    public function testValidateLibrary(): void
     {
         $this->validateLibrary(__DIR__ . '/..');
     }
 
-    public function testValidateAufwachlichtModule(): void
+    public function testValidateModule_Aufwachlicht(): void
     {
         $this->validateModule(__DIR__ . '/../Aufwachlicht');
     }
