@@ -9,12 +9,10 @@ Der Nutzer stimmt den o.a. Bedingungen, sowie den Lizenzbedingungen ausdrücklic
 
 ## Funktionen
 
----
-
 Mit dieser Funktion kann das Aufwachlicht geschaltet werden.
 
 ```text
-boolean AWL_ToggleWakeUpLight(integer $InstanceID, boolean $State, integer $Mode)
+boolean AWL_ToggleWakeUpLight(integer $InstanceID, boolean $State, integer $Mode = 0)
 ```
 
 Konnte der Befehl erfolgreich ausgeführt werden, liefert er als Ergebnis `TRUE`, andernfalls `FALSE`.
