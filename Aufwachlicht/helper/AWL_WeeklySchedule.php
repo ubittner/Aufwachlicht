@@ -53,7 +53,7 @@ trait AWL_WeeklySchedule
             IPS_SetEventScheduleGroupPoint($id, 0, 0, $time->hour, $time->minute, $time->second, 1);
             $selectedTime = $time->hour . ':' . $time->minute . ':' . $time->second;
             $endTime = strtotime('+' . $this->ReadPropertyInteger('WeekdayDuration') . ' minutes', strtotime($selectedTime));
-            $hour = intval(date('h', $endTime));
+            $hour = intval(date('G', $endTime));
             $minute = intval(date('i', $endTime));
             $second = intval(date('s', $endTime));
             IPS_SetEventScheduleGroupPoint($id, 0, 1, $hour, $minute, $second, 0);
@@ -65,7 +65,7 @@ trait AWL_WeeklySchedule
             IPS_SetEventScheduleGroupPoint($id, 1, 0, $time->hour, $time->minute, $time->second, 1);
             $selectedTime = $time->hour . ':' . $time->minute . ':' . $time->second;
             $endTime = strtotime('+' . $this->ReadPropertyInteger('WeekendDuration') . ' minutes', strtotime($selectedTime));
-            $hour = intval(date('h', $endTime));
+            $hour = intval(date('G', $endTime));
             $minute = intval(date('i', $endTime));
             $second = intval(date('s', $endTime));
             IPS_SetEventScheduleGroupPoint($id, 1, 1, $hour, $minute, $second, 0);

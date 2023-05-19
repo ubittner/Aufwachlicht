@@ -26,19 +26,21 @@ trait AWL_Control
      * @return bool
      * false =  an error occurred,
      * true =   successful
+     *
      * @throws Exception
      */
     public function ToggleWakeUpLight(bool $State, int $Mode = 0): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird ausgeführt.', 0);
         $this->SendDebug(__FUNCTION__, 'Status: ' . json_encode($State), 0);
+        $this->SendDebug(__FUNCTION__, 'Modus: ' . $Mode, 0);
 
         //Off
         if (!$State) {
             //Set values
             $this->SetValue('WakeUpLight', false);
-            IPS_SetDisabled($this->GetIDForIdent('Color'), false);
             IPS_SetDisabled($this->GetIDForIdent('Brightness'), false);
+            IPS_SetDisabled($this->GetIDForIdent('Color'), false);
             IPS_SetDisabled($this->GetIDForIdent('Duration'), false);
             $this->SetValue('ProcessFinished', '');
             @IPS_SetHidden($this->GetIDForIdent('ProcessFinished'), true);
@@ -94,8 +96,8 @@ trait AWL_Control
 
             //Set values
             $this->SetValue('WakeUpLight', true);
-            IPS_SetDisabled($this->GetIDForIdent('Color'), true);
             IPS_SetDisabled($this->GetIDForIdent('Brightness'), true);
+            IPS_SetDisabled($this->GetIDForIdent('Color'), true);
             IPS_SetDisabled($this->GetIDForIdent('Duration'), true);
             $this->SetValue('ProcessFinished', date('d.m.Y, H:i:s', $timestamp));
             @IPS_SetHidden($this->GetIDForIdent('ProcessFinished'), false);

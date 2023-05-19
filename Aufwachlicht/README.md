@@ -33,5 +33,3 @@ $id = 12345;
 $result = AWL_ToggleWakeUpLight($id, true);
 var_dump($result);
 ```
-
----

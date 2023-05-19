@@ -24,7 +24,7 @@ class Aufwachlicht extends IPSModule
     ##### Constants
     private const MODULE_NAME = 'Aufwachlicht';
     private const MODULE_PREFIX = 'AWL';
-    private const MODULE_VERSION = '1.0-2, 19.05.2023';
+    private const MODULE_VERSION = '1.0-3, 19.05.2023';
 
     public function Create()
     {
