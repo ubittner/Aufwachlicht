@@ -1,5 +1,8 @@
 <?php
 
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnused */
+
 /**
  * @project       Aufwachlicht/Aufwachlicht
  * @file          module.php
@@ -8,21 +11,20 @@
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
-/** @noinspection PhpUnhandledExceptionInspection */
-/** @noinspection PhpUnused */
-
 declare(strict_types=1);
 
-include_once __DIR__ . '/helper/autoload.php';
+include_once __DIR__ . '/helper/AWL_autoload.php';
 
 class Aufwachlicht extends IPSModule
 {
     //Helper
-    use Control;
-    use WeeklySchedule;
+    use AWL_Control;
+    use AWL_WeeklySchedule;
 
-    //Constants
-    private const MODULE_PREFIX = 'ESL';
+    ##### Constants
+    private const MODULE_NAME = 'Aufwachlicht';
+    private const MODULE_PREFIX = 'AWL';
+    private const MODULE_VERSION = '1.0-3, 19.05.2023';
 
     public function Create()
     {
@@ -31,19 +33,30 @@ class Aufwachlicht extends IPSModule
 
         ##### Properties
 
-        //Device
-        $this->RegisterPropertyInteger('DevicePower', 0);
-        $this->RegisterPropertyInteger('DeviceBrightness', 0);
-        $this->RegisterPropertyInteger('DeviceColor', 0);
-
-        //Weekly schedule
+        $this->RegisterPropertyInteger('LightStatus', 0);
+        $this->RegisterPropertyInteger('LightBrightness', 0);
+        $this->RegisterPropertyInteger('LightColor', 0);
         $this->RegisterPropertyInteger('WeeklySchedule', 0);
+        $this->RegisterPropertyBoolean('UseWeekday', true);
+        $this->RegisterPropertyString('WeekdayStartTime', '{"hour": "6", "minute": "0", "second": "0"}');
+        $this->RegisterPropertyInteger('WeekdayDuration', 30);
+        $this->RegisterPropertyInteger('WeekdayBrightness', 50);
+        $this->RegisterPropertyInteger('WeekdayColor', 16750848);
+        $this->RegisterPropertyBoolean('UseWeekend', true);
+        $this->RegisterPropertyString('WeekendStartTime', '{"hour": "8", "minute": "30", "second": "0"}');
+        $this->RegisterPropertyInteger('WeekendDuration', 30);
+        $this->RegisterPropertyInteger('WeekendBrightness', 50);
+        $this->RegisterPropertyInteger('WeekendColor', 16750848);
 
         ##### Variables
 
-        //Wake up light
+        //Wakeup light
+        $id = @$this->GetIDForIdent('WakeUpLight');
         $this->RegisterVariableBoolean('WakeUpLight', 'Aufwachlicht', '~Switch', 10);
         $this->EnableAction('WakeUpLight');
+        if (!$id) {
+            IPS_SetIcon(@$this->GetIDForIdent('WakeUpLight'), 'Bulb');
+        }
 
         //Brightness
         $id = @$this->GetIDForIdent('Brightness');
@@ -53,31 +66,9 @@ class Aufwachlicht extends IPSModule
             $this->SetValue('Brightness', 50);
         }
 
-        //ColorSelection
-        $profile = self::MODULE_PREFIX . '.' . $this->InstanceID . '.ColorSelection';
-        if (!IPS_VariableProfileExists($profile)) {
-            IPS_CreateVariableProfile($profile, 1);
-        }
-        IPS_SetVariableProfileIcon($profile, 'Menu');
-        IPS_SetVariableProfileValues($profile, 0, 1, 0);
-        IPS_SetVariableProfileDigits($profile, 0);
-        IPS_SetVariableProfileAssociation($profile, 0, 'Zuletzt verwendet', '', 0xFF0000);
-        IPS_SetVariableProfileAssociation($profile, 1, 'Benutzerdefiniert', '', 0x0000FF);
-        IPS_SetVariableProfileAssociation($profile, 52224, 'Farbe 1', '', 52224);
-        IPS_SetVariableProfileAssociation($profile, 874662, 'Farbe 2', '', 874662);
-        IPS_SetVariableProfileAssociation($profile, 4657582, 'Farbe 3', '', 4657582);
-        IPS_SetVariableProfileAssociation($profile, 12984992, 'Farbe 4', '', 12984992);
-        IPS_SetVariableProfileAssociation($profile, 16750848, 'Farbe 5', '', 16750848);
-        $id = @$this->GetIDForIdent('ColorSelection');
-        $this->RegisterVariableInteger('ColorSelection', 'Farbauswahl', $profile, 30);
-        $this->EnableAction('ColorSelection');
-        if (!$id) {
-            $this->SetValue('ColorSelection', 0);
-        }
-
         //Color
         $id = @$this->GetIDForIdent('Color');
-        $this->RegisterVariableInteger('Color', 'Farbe', '~HexColor', 40);
+        $this->RegisterVariableInteger('Color', 'Farbe', '~HexColor', 30);
         $this->EnableAction('Color');
         if (!$id) {
             $this->SetValue('Color', 16750848);
@@ -90,7 +81,7 @@ class Aufwachlicht extends IPSModule
             IPS_CreateVariableProfile($profile, 1);
         }
         IPS_SetVariableProfileIcon($profile, 'Hourglass');
-        IPS_SetVariableProfileValues($profile, 15, 120, 0);
+        IPS_SetVariableProfileValues($profile, 0, 120, 0);
         IPS_SetVariableProfileDigits($profile, 0);
         IPS_SetVariableProfileAssociation($profile, 15, '15 Min.', '', 0x0000FF);
         IPS_SetVariableProfileAssociation($profile, 30, '30 Min.', '', 0x0000FF);
@@ -99,7 +90,7 @@ class Aufwachlicht extends IPSModule
         IPS_SetVariableProfileAssociation($profile, 90, '90 Min.', '', 0x0000FF);
         IPS_SetVariableProfileAssociation($profile, 120, '120 Min.', '', 0x0000FF);
         $id = @$this->GetIDForIdent('Duration');
-        $this->RegisterVariableInteger('Duration', 'Dauer', $profile, 50);
+        $this->RegisterVariableInteger('Duration', 'Dauer', $profile, 40);
         $this->EnableAction('Duration');
         if (!$id) {
             $this->SetValue('Duration', 30);
@@ -107,7 +98,7 @@ class Aufwachlicht extends IPSModule
 
         //Process finished
         $id = @$this->GetIDForIdent('ProcessFinished');
-        $this->RegisterVariableString('ProcessFinished', 'Schaltvorgang bis', '', 70);
+        $this->RegisterVariableString('ProcessFinished', 'Schaltvorgang bis', '', 60);
         if (!$id) {
             IPS_SetIcon($this->GetIDForIdent('ProcessFinished'), 'Clock');
         }
@@ -129,7 +120,7 @@ class Aufwachlicht extends IPSModule
         parent::Destroy();
 
         //Delete profiles
-        $profiles = ['ColorSelection', 'Duration'];
+        $profiles = ['Duration'];
         if (!empty($profiles)) {
             foreach ($profiles as $profile) {
                 $profileName = self::MODULE_PREFIX . '.' . $this->InstanceID . '.' . $profile;
@@ -167,33 +158,36 @@ class Aufwachlicht extends IPSModule
 
         //Register references and messages
         $names = [];
-        $names[] = ['propertyName' => 'DevicePower', 'messageCategory' => VM_UPDATE];
-        $names[] = ['propertyName' => 'DeviceBrightness', 'messageCategory' => VM_UPDATE];
-        $names[] = ['propertyName' => 'DeviceColor', 'messageCategory' => 0];
+        $names[] = ['propertyName' => 'LightStatus', 'messageCategory' => VM_UPDATE];
+        $names[] = ['propertyName' => 'LightBrightness', 'messageCategory' => VM_UPDATE];
+        $names[] = ['propertyName' => 'LightColor', 'messageCategory' => 0];
         $names[] = ['propertyName' => 'WeeklySchedule', 'messageCategory' => EM_UPDATE];
         foreach ($names as $name) {
             $id = $this->ReadPropertyInteger($name['propertyName']);
             if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
                 $this->RegisterReference($id);
+                $this->SendDebug('RegisterMessage', 'ID: ' . $id . ', Name: ' . $name['propertyName'] . ', Message: ' . $name['messageCategory'], 0);
                 if ($name['messageCategory'] != 0) {
+                    $this->SendDebug('RegisterMessage', ' wird ausgeführt', 0);
+                    $this->SendDebug('RegisterMessage', 'ID: ' . $id . ', Message: ' . $name['messageCategory'], 0);
                     $this->RegisterMessage($id, $name['messageCategory']);
                 }
             }
         }
 
-        //Hide process finished
         if (!$this->GetValue('WakeUpLight')) {
             @IPS_SetHidden($this->GetIDForIdent('ProcessFinished'), true);
-        }
-
-        //Check weekly schedule
-        if (!$this->ValidateWeeklySchedule()) {
-            $this->DeleteWeeklySchedule();
         }
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
     {
+        $this->SendDebug('MessageSink', 'Message from SenderID ' . $SenderID . ' with Message ' . $Message . "\r\n Data: " . print_r($Data, true), 0);
+        if (!empty($Data)) {
+            foreach ($Data as $key => $value) {
+                $this->SendDebug(__FUNCTION__, 'Data[' . $key . '] = ' . json_encode($value), 0);
+            }
+        }
         switch ($Message) {
             case IPS_KERNELSTARTED:
                 $this->KernelReady();
@@ -208,25 +202,19 @@ class Aufwachlicht extends IPSModule
                 //$Data[4] = timestamp value changed
                 //$Data[5] = timestamp last value
 
-                //Device power
-                $devicePowerID = $this->ReadPropertyInteger('DevicePower');
-                if ($SenderID == $devicePowerID) {
-                    //Device is powered off
-                    if ($this->GetValue('WakeUpLight') && !GetValue($devicePowerID)) {
-                        $this->SendDebug(__FUNCTION__, 'Abbruch, Lampe wurde ausgeschaltet!', 0);
-                        $this->ToggleWakeUpLight(false);
+                //Light status
+                $lightStatus = $this->ReadPropertyInteger('LightStatus');
+                if ($SenderID == $lightStatus) {
+                    if (!GetValue($lightStatus)) {
+                        $this->ToggleWakeupLight(false);
                     }
                 }
 
-                //Device Brightness
-                $deviceBrightnessID = $this->ReadPropertyInteger('DeviceBrightness');
-                if ($SenderID == $deviceBrightnessID) {
+                //Light brightness
+                $lightBrightness = $this->ReadPropertyInteger('LightBrightness');
+                if ($SenderID == $lightBrightness) {
                     if ($this->GetValue('WakeUpLight')) {
-                        $this->SendDebug(__FUNCTION__, 'Lampe-Helligkeit: ' . $Data[0], 0);
-                        $deviceBrightness = GetValue($deviceBrightnessID);
-                        $cyclingBrightness = $this->ReadAttributeInteger('CyclingBrightness');
-                        if ($deviceBrightness != $cyclingBrightness) {
-                            $this->SendDebug(__FUNCTION__, 'Abbruch, Lampe-Helligkeit wurde manuell geändert!', 0);
+                        if (GetValue($lightBrightness) >= $this->ReadAttributeInteger('TargetBrightness')) {
                             $this->ToggleWakeUpLight(false);
                         }
                     }
@@ -239,10 +227,8 @@ class Aufwachlicht extends IPSModule
                 //$Data[1] = next run
 
                 //Weekly schedule
-                if ($this->ValidateWeeklySchedule()) {
-                    if ($this->DetermineAction() == 1) {
-                        $this->ToggleWakeUpLight(true);
-                    }
+                if ($this->DetermineAction() == 1) {
+                    $this->ToggleWakeUpLight(true, 1);
                 }
                 break;
 
@@ -255,231 +241,177 @@ class Aufwachlicht extends IPSModule
 
         ##### Elements
 
-        //Device power
-        $devicePowerID = $this->ReadPropertyInteger('DevicePower');
-        $enableButton = false;
-        if ($devicePowerID > 1 && @IPS_ObjectExists($devicePowerID)) { //0 = main category, 1 = none
-            $enableButton = true;
-        }
-        $data['elements'][0]['items'][1] = [
-            'type'     => 'OpenObjectButton',
-            'caption'  => 'ID ' . $devicePowerID . ' bearbeiten',
-            'name'     => 'DevicePowerConfigurationButton',
-            'visible'  => $enableButton,
-            'objectID' => $devicePowerID
-        ];
+        //Module name
+        $data['elements'][0]['caption'] = self::MODULE_NAME;
 
-        //Device Brightness
-        $deviceBrightnessID = $this->ReadPropertyInteger('DeviceBrightness');
-        $enableButton = false;
-        if ($deviceBrightnessID > 1 && @IPS_ObjectExists($deviceBrightnessID)) { //0 = main category, 1 = none
-            $enableButton = true;
-        }
-        $data['elements'][1]['items'][1] = [
-            'type'     => 'OpenObjectButton',
-            'caption'  => 'ID ' . $deviceBrightnessID . ' bearbeiten',
-            'name'     => 'DeviceBrightnessConfigurationButton',
-            'visible'  => $enableButton,
-            'objectID' => $deviceBrightnessID
-        ];
-
-        //Device color
-        $deviceColorID = $this->ReadPropertyInteger('DeviceColor');
-        $enableButton = false;
-        if ($deviceColorID > 1 && @IPS_ObjectExists($deviceColorID)) { //0 = main category, 1 = none
-            $enableButton = true;
-        }
-        $data['elements'][2]['items'][1] = [
-            'type'     => 'OpenObjectButton',
-            'caption'  => 'ID ' . $deviceColorID . ' bearbeiten',
-            'name'     => 'DeviceColorConfigurationButton',
-            'visible'  => $enableButton,
-            'objectID' => $deviceColorID
-        ];
+        //Version
+        $data['elements'][1]['caption'] = 'Version: ' . self::MODULE_VERSION;
 
         //Weekly schedule
-        $weeklyScheduleID = $this->ReadPropertyInteger('WeeklySchedule');
+        $id = $this->ReadPropertyInteger('WeeklySchedule');
         $enableButton = false;
-        if ($weeklyScheduleID > 1 && @IPS_ObjectExists($weeklyScheduleID)) { //0 = main category, 1 = none
+        if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
             $enableButton = true;
         }
-        $data['elements'][4]['items'][1] = [
-            'type'     => 'OpenObjectButton',
-            'caption'  => 'ID ' . $weeklyScheduleID . ' bearbeiten',
-            'name'     => 'WeeklyScheduleConfigurationButton',
-            'visible'  => $enableButton,
-            'objectID' => $weeklyScheduleID
 
+        $data['elements'][4]['items'][0] = [
+            'type'  => 'RowLayout',
+            'items' => [
+                [
+                    'type'     => 'SelectEvent',
+                    'name'     => 'WeeklySchedule',
+                    'caption'  => 'Wochenplan',
+                    'width'    => '600px',
+                    'onChange' => self::MODULE_PREFIX . '_ModifyButton($id, "WeeklyScheduleConfigurationButton", "ID " . $WeeklySchedule . " bearbeiten", $WeeklySchedule);'
+                ],
+                [
+                    'type'    => 'Label',
+                    'caption' => ' '
+                ],
+                [
+                    'type'     => 'OpenObjectButton',
+                    'caption'  => 'ID ' . $id . ' bearbeiten',
+                    'name'     => 'WeeklyScheduleConfigurationButton',
+                    'visible'  => $enableButton,
+                    'objectID' => $id
+                ]
+            ]
         ];
 
-        //Create weekly schedule button
-        $data['elements'][5] = [
-            'type'    => 'PopupButton',
-            'caption' => 'Wochenplan erstellen',
-            'popup'   => [
-                'caption' => 'Wochenplan wirklich erstellen und zuweisen?',
-                'items'   => [
-                    [
-                        'type'  => 'RowLayout',
-                        'items' => [
-                            [
-                                'type'  => 'CheckBox',
-                                'name'  => 'UseMonday',
-                                'value' => true
-                            ],
-                            [
-                                'type'    => 'Label',
-                                'caption' => "Montag\t\t"
-                            ],
-                            [
-                                'type'    => 'SelectTime',
-                                'name'    => 'MondayStartTime',
-                                'caption' => 'Startzeit',
-                                'width'   => '120px',
-                                'value'   => '{"hour": "06", "minute": "00", "second": "00"}'
-                            ]
+        ##### Actions
+
+        //Registered messages
+        $registeredMessages = [];
+        $messages = $this->GetMessageList();
+        foreach ($messages as $id => $messageID) {
+            $name = 'Objekt #' . $id . ' existiert nicht';
+            $rowColor = '#FFC0C0'; //red
+            if (@IPS_ObjectExists($id)) {
+                $name = IPS_GetName($id);
+                $rowColor = '#C0FFC0'; //light green
+            }
+            switch ($messageID) {
+                case [10001]:
+                    $messageDescription = 'IPS_KERNELSTARTED';
+                    break;
+
+                case [10603]:
+                    $messageDescription = 'VM_UPDATE';
+                    break;
+
+                case [10803]:
+                    $messageDescription = 'EM_UPDATE';
+                    break;
+
+                default:
+                    $messageDescription = 'keine Bezeichnung';
+            }
+            $registeredMessages[] = [
+                'ObjectID'           => $id,
+                'Name'               => $name,
+                'MessageID'          => $messageID,
+                'MessageDescription' => $messageDescription,
+                'rowColor'           => $rowColor];
+        }
+
+        $data['actions'][1] = [
+            'type'    => 'ExpansionPanel',
+            'caption' => 'Registrierte Nachrichten',
+            'items'   => [
+                [
+                    'type'     => 'List',
+                    'name'     => 'RegisteredMessages',
+                    'rowCount' => 10,
+                    'sort'     => [
+                        'column'    => 'ObjectID',
+                        'direction' => 'ascending'
+                    ],
+                    'columns' => [
+                        [
+                            'caption' => 'ID',
+                            'name'    => 'ObjectID',
+                            'width'   => '150px',
+                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredMessagesConfigurationButton", "ID " . $RegisteredMessages["ObjectID"] . " aufrufen", $RegisteredMessages["ObjectID"]);'
+                        ],
+                        [
+                            'caption' => 'Name',
+                            'name'    => 'Name',
+                            'width'   => '300px',
+                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredMessagesConfigurationButton", "ID " . $RegisteredMessages["ObjectID"] . " aufrufen", $RegisteredMessages["ObjectID"]);'
+                        ],
+                        [
+                            'caption' => 'Nachrichten ID',
+                            'name'    => 'MessageID',
+                            'width'   => '150px'
+                        ],
+                        [
+                            'caption' => 'Nachrichten Bezeichnung',
+                            'name'    => 'MessageDescription',
+                            'width'   => '250px'
                         ]
                     ],
-                    [
-                        'type'  => 'RowLayout',
-                        'items' => [
-                            [
-                                'type'  => 'CheckBox',
-                                'name'  => 'UseTuesday',
-                                'value' => true
-                            ],
-                            [
-                                'type'    => 'Label',
-                                'caption' => "Dienstag\t"
-                            ],
-                            [
-                                'type'    => 'SelectTime',
-                                'name'    => 'TuesdayStartTime',
-                                'caption' => 'Startzeit',
-                                'width'   => '120px',
-                                'value'   => '{"hour": "06", "minute": "00", "second": "00"}'
-                            ]
+                    'values' => $registeredMessages
+                ],
+                [
+                    'type'     => 'OpenObjectButton',
+                    'name'     => 'RegisteredMessagesConfigurationButton',
+                    'caption'  => 'Aufrufen',
+                    'visible'  => false,
+                    'objectID' => 0
+                ]
+            ]
+        ];
+
+        //Registered references
+        $registeredReferences = [];
+        $references = $this->GetReferenceList();
+        foreach ($references as $reference) {
+            $name = 'Objekt #' . $reference . ' existiert nicht';
+            $rowColor = '#FFC0C0'; //red
+            if (@IPS_ObjectExists($reference)) {
+                $name = IPS_GetName($reference);
+                $rowColor = '#C0FFC0'; //light green
+            }
+            $registeredReferences[] = [
+                'ObjectID' => $reference,
+                'Name'     => $name,
+                'rowColor' => $rowColor];
+        }
+
+        $data['actions'][2] = [
+            'type'    => 'ExpansionPanel',
+            'caption' => 'Registrierte Referenzen',
+            'items'   => [
+                [
+                    'type'     => 'List',
+                    'name'     => 'RegisteredReferences',
+                    'rowCount' => 10,
+                    'sort'     => [
+                        'column'    => 'ObjectID',
+                        'direction' => 'ascending'
+                    ],
+                    'columns' => [
+                        [
+                            'caption' => 'ID',
+                            'name'    => 'ObjectID',
+                            'width'   => '150px',
+                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredReferencesConfigurationButton", "ID " . $RegisteredReferences["ObjectID"] . " aufrufen", $RegisteredReferences["ObjectID"]);'
+                        ],
+                        [
+                            'caption' => 'Name',
+                            'name'    => 'Name',
+                            'width'   => '300px',
+                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredReferencesConfigurationButton", "ID " . $RegisteredReferences["ObjectID"] . " aufrufen", $RegisteredReferences["ObjectID"]);'
                         ]
                     ],
-                    [
-                        'type'  => 'RowLayout',
-                        'items' => [
-                            [
-                                'type'  => 'CheckBox',
-                                'name'  => 'UseWednesday',
-                                'value' => true
-                            ],
-                            [
-                                'type'    => 'Label',
-                                'caption' => "Mittwoch\t"
-                            ],
-                            [
-                                'type'    => 'SelectTime',
-                                'name'    => 'WednesdayStartTime',
-                                'caption' => 'Startzeit',
-                                'width'   => '120px',
-                                'value'   => '{"hour": "06", "minute": "00", "second": "00"}'
-                            ]
-                        ]
-                    ],
-                    [
-                        'type'  => 'RowLayout',
-                        'items' => [
-                            [
-                                'type'  => 'CheckBox',
-                                'name'  => 'UseThursday',
-                                'value' => true
-                            ],
-                            [
-                                'type'    => 'Label',
-                                'caption' => "Donnerstag\t"
-                            ],
-                            [
-                                'type'    => 'SelectTime',
-                                'name'    => 'ThursdayStartTime',
-                                'caption' => 'Startzeit',
-                                'width'   => '120px',
-                                'value'   => '{"hour": "06", "minute": "00", "second": "00"}'
-                            ]
-                        ]
-                    ],
-                    [
-                        'type'  => 'RowLayout',
-                        'items' => [
-                            [
-                                'type'  => 'CheckBox',
-                                'name'  => 'UseFriday',
-                                'value' => true
-                            ],
-                            [
-                                'type'    => 'Label',
-                                'caption' => "Freitag\t\t"
-                            ],
-                            [
-                                'type'    => 'SelectTime',
-                                'name'    => 'FridayStartTime',
-                                'caption' => 'Startzeit',
-                                'width'   => '120px',
-                                'value'   => '{"hour": "06", "minute": "00", "second": "00"}'
-                            ]
-                        ]
-                    ],
-                    [
-                        'type'  => 'RowLayout',
-                        'items' => [
-                            [
-                                'type'  => 'CheckBox',
-                                'name'  => 'UseSaturday',
-                                'value' => true
-                            ],
-                            [
-                                'type'    => 'Label',
-                                'caption' => "Samstag\t"
-                            ],
-                            [
-                                'type'    => 'SelectTime',
-                                'name'    => 'SaturdayStartTime',
-                                'caption' => 'Startzeit',
-                                'width'   => '120px',
-                                'value'   => '{"hour": "07", "minute": "30", "second": "00"}'
-                            ]
-                        ]
-                    ],
-                    [
-                        'type'  => 'RowLayout',
-                        'items' => [
-                            [
-                                'type'  => 'CheckBox',
-                                'name'  => 'UseSunday',
-                                'value' => true
-                            ],
-                            [
-                                'type'    => 'Label',
-                                'caption' => "Sonntag\t\t"
-                            ],
-                            [
-                                'type'    => 'SelectTime',
-                                'name'    => 'SundayStartTime',
-                                'caption' => 'Startzeit',
-                                'width'   => '120px',
-                                'value'   => '{"hour": "08", "minute": "30", "second": "00"}'
-                            ]
-                        ]
-                    ],
-                    [
-                        'type'    => 'Button',
-                        'caption' => 'Erstellen',
-                        'onClick' => [
-                            '$events["Monday"] = ["days" => 1, "use" => $UseMonday, "startTime" => $MondayStartTime];',
-                            '$events["Tuesday"] = ["days" => 2, "use" => $UseTuesday, "startTime" => $TuesdayStartTime];',
-                            '$events["Wednesday"] = ["days" => 4, "use" => $UseWednesday, "startTime" => $WednesdayStartTime];',
-                            '$events["Thursday"] = ["days" => 8, "use" => $UseThursday, "startTime" => $ThursdayStartTime];',
-                            '$events["Friday"] = ["days" => 16, "use" => $UseFriday, "startTime" => $FridayStartTime];',
-                            '$events["Saturday"] = ["days" => 32, "use" => $UseSaturday, "startTime" => $SaturdayStartTime];',
-                            '$events["Sunday"] = ["days" => 64, "use" => $UseSunday, "startTime" => $SundayStartTime];',
-                            '$eventID = ESL_CreateWeeklySchedule($id, json_encode($events));'
-                        ]
-                    ]
+                    'values' => $registeredReferences
+                ],
+                [
+                    'type'     => 'OpenObjectButton',
+                    'name'     => 'RegisteredReferencesConfigurationButton',
+                    'caption'  => 'Aufrufen',
+                    'visible'  => false,
+                    'objectID' => 0
                 ]
             ]
         ];
@@ -515,9 +447,8 @@ class Aufwachlicht extends IPSModule
                 $this->ToggleWakeUpLight($Value);
                 break;
 
-            case 'Brightness':
-            case 'ColorSelection':
             case 'Color':
+            case 'Brightness':
             case 'Duration':
                 $this->SetValue($Ident, $Value);
                 break;
@@ -536,6 +467,8 @@ class Aufwachlicht extends IPSModule
      * Unregisters a variable profile.
      *
      * @param string $Name
+     * Profile name
+     *
      * @return void
      */
     private function UnregisterProfile(string $Name): void
