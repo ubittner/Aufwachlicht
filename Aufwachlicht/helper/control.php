@@ -74,7 +74,9 @@ trait Control
             $this->SetValue('ProcessFinished', date('d.m.Y, H:i:s', $timestamp));
             IPS_SetHidden($this->GetIDForIdent('ProcessFinished'), false);
             //Set attributes
-            $this->WriteAttributeInteger('TargetBrightness', $this->GetValue('Brightness'));
+            $targetBrightness = $this->GetValue('Brightness');
+            $this->WriteAttributeInteger('TargetBrightness', $targetBrightness);
+            $this->SendDebug(__FUNCTION__, 'Zielhelligkeit: ' . $targetBrightness, 0);
             $brightness = 1;
             $this->WriteAttributeInteger('CyclingBrightness', $brightness);
             $this->SendDebug(__FUNCTION__, 'Helligkeit: ' . $brightness, 0);
@@ -128,7 +130,6 @@ trait Control
         $this->WriteAttributeInteger('CyclingBrightness', $cyclingBrightness);
         //Target brightness
         $targetBrightness = $this->ReadAttributeInteger('TargetBrightness');
-        $this->SendDebug(__FUNCTION__, 'Zielhelligkeit: ' . $targetBrightness, 0);
         //Set device brightness
         $this->SetDeviceBrightness($cyclingBrightness);
         //Check for last cycle
