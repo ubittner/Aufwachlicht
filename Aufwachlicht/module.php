@@ -66,12 +66,12 @@ class Aufwachlicht extends IPSModule
         IPS_SetVariableProfileValues($profile, 0, 1, 0);
         IPS_SetVariableProfileDigits($profile, 0);
         IPS_SetVariableProfileAssociation($profile, 0, 'Zuletzt verwendet', '', 0xFF0000);
-        IPS_SetVariableProfileAssociation($profile, 1, 'Benutzerdefiniert', '', 0x0000FF);
-        IPS_SetVariableProfileAssociation($profile, 52224, 'Farbe 1', '', 52224);
-        IPS_SetVariableProfileAssociation($profile, 874662, 'Farbe 2', '', 874662);
-        IPS_SetVariableProfileAssociation($profile, 4657582, 'Farbe 3', '', 4657582);
-        IPS_SetVariableProfileAssociation($profile, 12984992, 'Farbe 4', '', 12984992);
-        IPS_SetVariableProfileAssociation($profile, 16750848, 'Farbe 5', '', 16750848);
+        IPS_SetVariableProfileAssociation($profile, 1, 'Benutzerdefiniert', '', -1);
+        IPS_SetVariableProfileAssociation($profile, 52224, 'Grün', '', 52224);
+        IPS_SetVariableProfileAssociation($profile, 874662, 'Blau', '', 874662);
+        IPS_SetVariableProfileAssociation($profile, 4657582, 'Violett', '', 4657582);
+        IPS_SetVariableProfileAssociation($profile, 12984992, 'Magenta', '', 12984992);
+        IPS_SetVariableProfileAssociation($profile, 16750848, 'Orange', '', 16750848);
         $id = @$this->GetIDForIdent('ColorSelection');
         $this->RegisterVariableInteger('ColorSelection', 'Farbauswahl', $profile, 30);
         $this->EnableAction('ColorSelection');
@@ -212,9 +212,16 @@ class Aufwachlicht extends IPSModule
             }
         }
 
+        //Disable color
+        $disabled = true;
+        if ($this->GetValue('ColorSelection') == 1) {
+            $disabled = false;
+        }
+        IPS_SetDisabled($this->GetIDForIdent('Color'), $disabled);
+
         //Hide process finished
         if (!$this->GetValue('WakeUpLight')) {
-            @IPS_SetHidden($this->GetIDForIdent('ProcessFinished'), true);
+            IPS_SetHidden($this->GetIDForIdent('ProcessFinished'), true);
         }
 
         //Check weekly schedule
@@ -546,8 +553,16 @@ class Aufwachlicht extends IPSModule
                 $this->ToggleWakeUpLight($Value);
                 break;
 
-            case 'Brightness':
             case 'ColorSelection':
+                $this->SetValue($Ident, $Value);
+                $disabled = true;
+                if ($Value == 1) {
+                    $disabled = false;
+                }
+                IPS_SetDisabled($this->GetIDForIdent('Color'), $disabled);
+                break;
+
+            case 'Brightness':
             case 'Color':
             case 'Duration':
             case 'AutomaticPowerOff':
