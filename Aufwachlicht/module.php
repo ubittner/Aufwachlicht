@@ -9,6 +9,7 @@
  */
 
 /** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection DuplicatedCode */
 /** @noinspection PhpUnused */
 
 declare(strict_types=1);
@@ -42,9 +43,12 @@ class Aufwachlicht extends IPSModule
         ##### Variables
 
         //Wake up light
+        $id = @$this->GetIDForIdent('WakeUpLight');
         $this->RegisterVariableBoolean('WakeUpLight', 'Aufwachlicht', '~Switch', 10);
         $this->EnableAction('WakeUpLight');
-
+        if (!$id) {
+            IPS_SetIcon(@$this->GetIDForIdent('WakeUpLight'), 'Sun');
+        }
         //Brightness
         $id = @$this->GetIDForIdent('Brightness');
         $this->RegisterVariableInteger('Brightness', 'Helligkeit', '~Intensity.100', 20);
@@ -92,6 +96,8 @@ class Aufwachlicht extends IPSModule
         IPS_SetVariableProfileIcon($profile, 'Hourglass');
         IPS_SetVariableProfileValues($profile, 15, 120, 0);
         IPS_SetVariableProfileDigits($profile, 0);
+        IPS_SetVariableProfileAssociation($profile, 5, '5 Min.', '', 0x0000FF);
+        IPS_SetVariableProfileAssociation($profile, 10, '10 Min.', '', 0x0000FF);
         IPS_SetVariableProfileAssociation($profile, 15, '15 Min.', '', 0x0000FF);
         IPS_SetVariableProfileAssociation($profile, 30, '30 Min.', '', 0x0000FF);
         IPS_SetVariableProfileAssociation($profile, 45, '45 Min.', '', 0x0000FF);
@@ -105,9 +111,33 @@ class Aufwachlicht extends IPSModule
             $this->SetValue('Duration', 30);
         }
 
+        //Automatic power off
+        $profile = self::MODULE_PREFIX . '.' . $this->InstanceID . '.AutomaticPowerOff';
+        if (!IPS_VariableProfileExists($profile)) {
+            IPS_CreateVariableProfile($profile, 1);
+        }
+        IPS_SetVariableProfileIcon($profile, 'Bulb');
+        IPS_SetVariableProfileValues($profile, 0, 120, 0);
+        IPS_SetVariableProfileDigits($profile, 0);
+        IPS_SetVariableProfileAssociation($profile, 0, 'Nie', '', 0xFF0000);
+        IPS_SetVariableProfileAssociation($profile, 5, '5 Min.', '', 0x0000FF);
+        IPS_SetVariableProfileAssociation($profile, 10, '10 Min.', '', 0x0000FF);
+        IPS_SetVariableProfileAssociation($profile, 15, '15 Min.', '', 0x0000FF);
+        IPS_SetVariableProfileAssociation($profile, 30, '30 Min.', '', 0x0000FF);
+        IPS_SetVariableProfileAssociation($profile, 45, '45 Min.', '', 0x0000FF);
+        IPS_SetVariableProfileAssociation($profile, 60, '60 Min.', '', 0x0000FF);
+        IPS_SetVariableProfileAssociation($profile, 90, '90 Min.', '', 0x0000FF);
+        IPS_SetVariableProfileAssociation($profile, 120, '120 Min.', '', 0x0000FF);
+        $id = @$this->GetIDForIdent('AutomaticPowerOff');
+        $this->RegisterVariableInteger('AutomaticPowerOff', 'Ausschalten', $profile, 60);
+        $this->EnableAction('AutomaticPowerOff');
+        if (!$id) {
+            $this->SetValue('AutomaticPowerOff', 0);
+        }
+
         //Process finished
         $id = @$this->GetIDForIdent('ProcessFinished');
-        $this->RegisterVariableString('ProcessFinished', 'Schaltvorgang bis', '', 70);
+        $this->RegisterVariableString('ProcessFinished', 'Schaltvorgang bis', '', 80);
         if (!$id) {
             IPS_SetIcon($this->GetIDForIdent('ProcessFinished'), 'Clock');
         }
@@ -121,6 +151,7 @@ class Aufwachlicht extends IPSModule
         #### Timer
 
         $this->RegisterTimer('IncreaseBrightness', 0, self::MODULE_PREFIX . '_IncreaseBrightness(' . $this->InstanceID . ');');
+        $this->RegisterTimer('AutomaticPowerOff', 0, self::MODULE_PREFIX . '_PowerDevice(' . $this->InstanceID . ', false);');
     }
 
     public function Destroy()
@@ -129,7 +160,7 @@ class Aufwachlicht extends IPSModule
         parent::Destroy();
 
         //Delete profiles
-        $profiles = ['ColorSelection', 'Duration'];
+        $profiles = ['ColorSelection', 'Duration', 'AutomaticPowerOff'];
         if (!empty($profiles)) {
             foreach ($profiles as $profile) {
                 $profileName = self::MODULE_PREFIX . '.' . $this->InstanceID . '.' . $profile;
@@ -226,7 +257,7 @@ class Aufwachlicht extends IPSModule
                         $deviceBrightness = GetValue($deviceBrightnessID);
                         $cyclingBrightness = $this->ReadAttributeInteger('CyclingBrightness');
                         if ($deviceBrightness != $cyclingBrightness) {
-                            $this->SendDebug(__FUNCTION__, 'Abbruch, Lampe-Helligkeit wurde manuell geändert!', 0);
+                            $this->SendDebug(__FUNCTION__, 'Abbruch, Lampen-Helligkeit wurde manuell geändert!', 0);
                             $this->ToggleWakeUpLight(false);
                         }
                     }
@@ -519,6 +550,7 @@ class Aufwachlicht extends IPSModule
             case 'ColorSelection':
             case 'Color':
             case 'Duration':
+            case 'AutomaticPowerOff':
                 $this->SetValue($Ident, $Value);
                 break;
 
