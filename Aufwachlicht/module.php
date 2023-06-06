@@ -49,6 +49,7 @@ class Aufwachlicht extends IPSModule
         if (!$id) {
             IPS_SetIcon(@$this->GetIDForIdent('WakeUpLight'), 'Sun');
         }
+
         //Brightness
         $id = @$this->GetIDForIdent('Brightness');
         $this->RegisterVariableInteger('Brightness', 'Helligkeit', '~Intensity.100', 20);
