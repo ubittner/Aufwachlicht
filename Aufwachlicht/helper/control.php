@@ -42,7 +42,11 @@ trait Control
             $this->SetValue('WakeUpLight', false);
             IPS_SetDisabled($this->GetIDForIdent('Brightness'), false);
             IPS_SetDisabled($this->GetIDForIdent('ColorSelection'), false);
-            IPS_SetDisabled($this->GetIDForIdent('Color'), false);
+            $disabled = true;
+            if ($this->GetValue('ColorSelection') == 1) {
+                $disabled = false;
+            }
+            IPS_SetDisabled($this->GetIDForIdent('Color'), $disabled);
             IPS_SetDisabled($this->GetIDForIdent('Duration'), false);
             IPS_SetDisabled($this->GetIDForIdent('AutomaticPowerOff'), false);
             $this->SetValue('ProcessFinished', '');
